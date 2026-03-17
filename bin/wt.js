@@ -2,7 +2,7 @@
 'use strict';
 
 const { program } = require('commander');
-const { add, list, remove, goPath } = require('../src/worktree');
+const { add, list, remove, goPath, getWorktreeNameByIndex } = require('../src/worktree');
 const { version } = require('../package.json');
 
 program
@@ -27,7 +27,9 @@ program
   .option('-n, --numeric', 'Identify worktree by 1-based numeric index (prompts for confirmation)')
   .action((worktree, opts) => {
     if (opts.numeric) {
-      const answer = promptConfirm(`Remove worktree #${worktree}? [y/N] `);
+      const name = getWorktreeNameByIndex(parseInt(worktree, 10));
+      const label = name ? ` (${name})` : '';
+      const answer = promptConfirm(`Remove worktree #${worktree}${label}? [y/N] `);
       if (answer !== 'y' && answer !== 'Y') {
         console.log('Aborted.');
         return;

@@ -182,4 +182,17 @@ function goPath(identifier, opts = {}) {
   process.stdout.write(target.path);
 }
 
-module.exports = { add, list, remove, goPath };
+function getWorktreeNameByIndex(index) {
+  let output;
+  try {
+    output = git(['worktree', 'list', '--porcelain']);
+  } catch {
+    return null;
+  }
+  const worktrees = parseWorktreePorcelain(output);
+  const target = worktrees.slice(1)[index - 1];
+  if (!target) return null;
+  return shortBranch(target.branch) || target.path;
+}
+
+module.exports = { add, list, remove, goPath, getWorktreeNameByIndex };
