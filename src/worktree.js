@@ -99,7 +99,17 @@ function remove(identifier, opts = {}) {
 
   const mainWorktree = worktrees[0];
 
-  const target = resolveWorktree(worktrees.slice(1), identifier);
+  let target;
+  if (opts.numeric) {
+    const index = parseInt(identifier, 10);
+    if (isNaN(index)) {
+      throw new Error(`'${identifier}' is not a valid number.`);
+    }
+    target = worktrees.slice(1)[index - 1];
+  } else {
+    target = resolveWorktree(worktrees.slice(1), identifier);
+  }
+
   if (!target) {
     throw new Error(`No worktree found matching '${identifier}'.`);
   }

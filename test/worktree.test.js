@@ -387,6 +387,36 @@ describe('remove()', () => {
     assert.ok(!calls.some(c => c[0] === 'branch'));
     assert.doesNotMatch(consoleLogs[0], /deleted branch/);
   });
+
+  it('resolves and removes the first non-main worktree with -n 1', () => {
+    currentGitFn = (args) => {
+      if (args[0] === 'status' && args[1] === '--porcelain') return '';
+      return twoWorktrees();
+    };
+    worktree.remove('1', { numeric: true });
+    assert.match(consoleLogs[0], /feature\/foo/);
+  });
+
+  it('throws for -n with out-of-range index', () => {
+    currentGitFn = () => twoWorktrees();
+    assert.throws(() => worktree.remove('99', { numeric: true }), {
+      message: "No worktree found matching '99'.",
+    });
+  });
+
+  it('throws for -n with non-numeric string', () => {
+    currentGitFn = () => twoWorktrees();
+    assert.throws(() => worktree.remove('foo', { numeric: true }), {
+      message: "'foo' is not a valid number.",
+    });
+  });
+
+  it('throws for -n 0 (index is 1-based)', () => {
+    currentGitFn = () => twoWorktrees();
+    assert.throws(() => worktree.remove('0', { numeric: true }), {
+      message: "No worktree found matching '0'.",
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

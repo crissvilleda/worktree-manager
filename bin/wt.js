@@ -24,7 +24,17 @@ program
   .command('rm <worktree>')
   .description('Remove a worktree and delete its branch')
   .option('-f, --force', 'Remove even if there are uncommitted changes')
-  .action((worktree, opts) => run(() => remove(worktree, opts)));
+  .option('-n, --numeric', 'Identify worktree by 1-based numeric index (prompts for confirmation)')
+  .action((worktree, opts) => {
+    if (opts.numeric) {
+      const answer = promptConfirm(`Remove worktree #${worktree}? [y/N] `);
+      if (answer !== 'y' && answer !== 'Y') {
+        console.log('Aborted.');
+        return;
+      }
+    }
+    run(() => remove(worktree, opts));
+  });
 
 program
   .command('go <name|number>')
@@ -50,4 +60,11 @@ function run(fn) {
     console.error('Error:', err.message);
     process.exit(1);
   }
+}
+
+function promptConfirm(question) {
+  process.stdout.write(question);
+  const buf = Buffer.alloc(4);
+  const n = require('fs').readSync(0, buf, 0, 4);
+  return buf.subarray(0, n).toString().trim();
 }

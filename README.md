@@ -62,6 +62,15 @@ wt rm --force my-feature   # remove even with uncommitted changes
 
 You can identify the worktree by branch name, directory name, or full path.
 
+### `wt rm -n <number>`
+
+Remove a worktree by its 1-based index (as shown in `wt list`). You will be asked to confirm before the removal proceeds.
+
+```bash
+wt rm -n 2            # prompts: Remove worktree #2? [y/N]
+wt rm -n 2 --force    # prompts, then force-removes if confirmed
+```
+
 ### `wt go <name>`
 
 Navigate your terminal to a worktree directory by branch name, directory name, or full path.
