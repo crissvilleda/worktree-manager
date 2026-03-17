@@ -65,21 +65,21 @@ function list() {
     return;
   }
 
+  const maxPathLen = Math.max(...worktrees.map(wt => wt.path.length));
+
   worktrees.forEach((wt, i) => {
     const isMain = i === 0;
-    const label = isMain ? ' [main]' : '';
     const isNullHead = !wt.head || /^0+$/.test(wt.head);
     const branchLabel = wt.detached
-      ? `(detached HEAD at ${!isNullHead ? wt.head.slice(0, 7) : 'none'})`
+      ? `detached HEAD at ${!isNullHead ? wt.head.slice(0, 7) : 'none'}`
       : wt.bare
-      ? '(bare)'
-      : shortBranch(wt.branch) || '(unknown)';
-    const headLabel = isNullHead ? '(no commits yet)' : wt.head.slice(0, 7);
+      ? 'bare'
+      : shortBranch(wt.branch) || 'unknown';
+    const mainTag = isMain ? ' [main]' : '';
+    const paddedPath = wt.path.padEnd(maxPathLen);
+    const index = String(i + 1).padStart(2);
 
-    console.log(`${wt.path}${label}`);
-    console.log(`  branch: ${branchLabel}`);
-    console.log(`  HEAD:   ${headLabel}`);
-    console.log('');
+    console.log(`${index}  ${paddedPath}  [${branchLabel}]${mainTag}`);
   });
 }
 
