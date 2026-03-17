@@ -2,7 +2,8 @@
 'use strict';
 
 const { program } = require('commander');
-const { add, list, remove, goPath, getWorktreeNameByIndex } = require('../src/worktree');
+const { add, list, remove, goPath, getWorktreeByIndex } = require('../src/worktree');
+const { shortBranch } = require('../src/utils');
 const { version } = require('../package.json');
 
 program
@@ -27,13 +28,19 @@ program
   .option('-n, --numeric', 'Identify worktree by 1-based numeric index (prompts for confirmation)')
   .action((worktree, opts) => {
     if (opts.numeric) {
-      const name = getWorktreeNameByIndex(parseInt(worktree, 10));
-      const label = name ? ` (${name})` : '';
+      const target = getWorktreeByIndex(parseInt(worktree, 10));
+      if (!target) {
+        console.error(`Error: No worktree found at index ${worktree}.`);
+        process.exit(1);
+      }
+      const label = ` (${shortBranch(target.branch) || target.path})`;
       const answer = promptConfirm(`Remove worktree #${worktree}${label}? [y/N] `);
       if (answer !== 'y' && answer !== 'Y') {
         console.log('Aborted.');
         return;
       }
+      run(() => remove(target.path, { ...opts, numeric: false }));
+      return;
     }
     run(() => remove(worktree, opts));
   });

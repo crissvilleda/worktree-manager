@@ -508,3 +508,33 @@ describe('goPath()', () => {
     assert.equal(stdoutWrites[0], '/repos/main');
   });
 });
+
+// ---------------------------------------------------------------------------
+// getWorktreeByIndex()
+// ---------------------------------------------------------------------------
+describe('getWorktreeByIndex()', () => {
+  beforeEach(captureConsole);
+  afterEach(() => mock.restoreAll());
+
+  it('returns the full worktree object for a valid index', () => {
+    currentGitFn = () => twoWorktrees();
+    const result = worktree.getWorktreeByIndex(1);
+    assert.equal(result.path, '/repos/feat');
+    assert.equal(result.branch, 'refs/heads/feature/foo');
+  });
+
+  it('returns null for an out-of-range index', () => {
+    currentGitFn = () => twoWorktrees();
+    assert.equal(worktree.getWorktreeByIndex(99), null);
+  });
+
+  it('returns null for index 0 (1-based)', () => {
+    currentGitFn = () => twoWorktrees();
+    assert.equal(worktree.getWorktreeByIndex(0), null);
+  });
+
+  it('returns null when git fails', () => {
+    currentGitFn = () => { throw new Error('not a git repo'); };
+    assert.equal(worktree.getWorktreeByIndex(1), null);
+  });
+});

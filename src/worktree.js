@@ -182,7 +182,7 @@ function goPath(identifier, opts = {}) {
   process.stdout.write(target.path);
 }
 
-function getWorktreeNameByIndex(index) {
+function getWorktreeByIndex(index) {
   let output;
   try {
     output = git(['worktree', 'list', '--porcelain']);
@@ -190,9 +190,13 @@ function getWorktreeNameByIndex(index) {
     return null;
   }
   const worktrees = parseWorktreePorcelain(output);
-  const target = worktrees.slice(1)[index - 1];
+  return worktrees.slice(1)[index - 1] || null;
+}
+
+function getWorktreeNameByIndex(index) {
+  const target = getWorktreeByIndex(index);
   if (!target) return null;
   return shortBranch(target.branch) || target.path;
 }
 
-module.exports = { add, list, remove, goPath, getWorktreeNameByIndex };
+module.exports = { add, list, remove, goPath, getWorktreeByIndex, getWorktreeNameByIndex };
