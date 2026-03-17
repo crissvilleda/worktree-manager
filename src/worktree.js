@@ -13,13 +13,13 @@ const {
 function add(branchName, directory) {
   let repoRoot;
   try {
-    repoRoot = git('rev-parse --show-toplevel');
+    repoRoot = git(['rev-parse', '--show-toplevel']);
   } catch {
     throw new Error('Not inside a git repository.');
   }
 
   try {
-    git('rev-parse HEAD');
+    git(['rev-parse', 'HEAD']);
   } catch {
     throw new Error(
       'Repository has no commits yet. Make an initial commit before adding worktrees.'
@@ -35,16 +35,16 @@ function add(branchName, directory) {
 
   let branchExists = false;
   try {
-    git(`rev-parse --verify ${branchName}`);
+    git(['rev-parse', '--verify', branchName]);
     branchExists = true;
   } catch {
     branchExists = false;
   }
 
   if (branchExists) {
-    git(`worktree add "${targetDir}" ${branchName}`);
+    git(['worktree', 'add', targetDir, branchName]);
   } else {
-    git(`worktree add -b ${branchName} "${targetDir}"`);
+    git(['worktree', 'add', '-b', branchName, targetDir]);
   }
 
   console.log(`Worktree created at ${targetDir} on branch ${branchName}`);
@@ -53,7 +53,7 @@ function add(branchName, directory) {
 function list() {
   let output;
   try {
-    output = git('worktree list --porcelain');
+    output = git(['worktree', 'list', '--porcelain']);
   } catch {
     throw new Error('Not inside a git repository.');
   }
@@ -86,7 +86,7 @@ function list() {
 function remove(identifier, opts = {}) {
   let output;
   try {
-    output = git('worktree list --porcelain');
+    output = git(['worktree', 'list', '--porcelain']);
   } catch {
     throw new Error('Not inside a git repository.');
   }
@@ -111,7 +111,7 @@ function remove(identifier, opts = {}) {
   if (!opts.force) {
     let statusOutput;
     try {
-      statusOutput = git('status --porcelain', { cwd: target.path });
+      statusOutput = git(['status', '--porcelain'], { cwd: target.path });
     } catch {
       throw new Error(
         `Could not check worktree status at ${target.path}. ` +
@@ -125,14 +125,13 @@ function remove(identifier, opts = {}) {
     }
   }
 
-  const forceFlag = opts.force ? '--force ' : '';
-  git(`worktree remove ${forceFlag}"${target.path}"`);
+  git(['worktree', 'remove', ...(opts.force ? ['--force'] : []), target.path]);
 
   const branch = shortBranch(target.branch);
   if (branch) {
     const deleteFlag = opts.force ? '-D' : '-d';
     try {
-      git(`branch ${deleteFlag} ${branch}`);
+      git(['branch', deleteFlag, branch]);
     } catch (err) {
       if (err.message.includes('not found')) {
         console.warn(`Warning: branch '${branch}' was already deleted.`);
@@ -148,7 +147,7 @@ function remove(identifier, opts = {}) {
 function goPath(identifier) {
   let output;
   try {
-    output = git('worktree list --porcelain');
+    output = git(['worktree', 'list', '--porcelain']);
   } catch {
     throw new Error('Not inside a git repository.');
   }

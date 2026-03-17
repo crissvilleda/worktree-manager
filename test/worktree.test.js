@@ -99,54 +99,55 @@ describe('add()', () => {
 
   it('creates worktree with -b for a new (non-existent) branch', () => {
     const calls = [];
-    currentGitFn = (cmd) => {
-      calls.push(cmd);
-      if (cmd.includes('rev-parse --verify')) throw new Error('unknown revision');
+    currentGitFn = (args) => {
+      calls.push(args);
+      if (args[0] === 'rev-parse' && args[1] === '--verify') throw new Error('unknown revision');
       return '/repos/myrepo';
     };
     worktree.add('feature/new-feat');
-    const addCall = calls.find(c => c.includes('worktree add'));
+    const addCall = calls.find(c => c[0] === 'worktree' && c[1] === 'add');
     assert.ok(addCall, 'worktree add was called');
-    assert.match(addCall, /-b feature\/new-feat/);
+    assert.ok(addCall.includes('-b'), 'expected -b flag');
+    assert.ok(addCall.includes('feature/new-feat'), 'expected branch name');
   });
 
   it('creates worktree without -b when the branch already exists', () => {
     const calls = [];
-    currentGitFn = (cmd) => { calls.push(cmd); return '/repos/myrepo'; };
+    currentGitFn = (args) => { calls.push(args); return '/repos/myrepo'; };
     worktree.add('main');
-    const addCall = calls.find(c => c.includes('worktree add'));
+    const addCall = calls.find(c => c[0] === 'worktree' && c[1] === 'add');
     assert.ok(addCall, 'worktree add was called');
-    assert.doesNotMatch(addCall, /-b /);
+    assert.ok(!addCall.includes('-b'), 'expected no -b flag');
   });
 
   it('derives directory from the last branch segment when no dir is given', () => {
     const calls = [];
-    currentGitFn = (cmd) => {
-      calls.push(cmd);
-      if (cmd.includes('rev-parse --verify')) throw new Error('unknown');
+    currentGitFn = (args) => {
+      calls.push(args);
+      if (args[0] === 'rev-parse' && args[1] === '--verify') throw new Error('unknown');
       return '/repos/myrepo';
     };
     worktree.add('feature/my-feat');
-    const addCall = calls.find(c => c.includes('worktree add'));
-    const pathArg = addCall.match(/"([^"]+)"/)?.[1];
+    const addCall = calls.find(c => c[0] === 'worktree' && c[1] === 'add');
+    const pathArg = addCall.find(a => a !== 'worktree' && a !== 'add' && a !== '-b' && a !== 'feature/my-feat');
     assert.ok(pathArg?.endsWith('my-feat'), `expected path ending with my-feat, got: ${pathArg}`);
   });
 
   it('uses the explicit directory when one is provided', () => {
     const calls = [];
-    currentGitFn = (cmd) => {
-      calls.push(cmd);
-      if (cmd.includes('rev-parse --verify')) throw new Error('unknown');
+    currentGitFn = (args) => {
+      calls.push(args);
+      if (args[0] === 'rev-parse' && args[1] === '--verify') throw new Error('unknown');
       return '/repos/myrepo';
     };
     worktree.add('feature/foo', '/tmp/custom');
-    const addCall = calls.find(c => c.includes('worktree add'));
-    assert.match(addCall, /\/tmp\/custom/);
+    const addCall = calls.find(c => c[0] === 'worktree' && c[1] === 'add');
+    assert.ok(addCall.includes('/tmp/custom'), 'expected /tmp/custom in args');
   });
 
   it('logs a success message with the target path and branch name', () => {
-    currentGitFn = (cmd) => {
-      if (cmd.includes('rev-parse --verify')) throw new Error('unknown');
+    currentGitFn = (args) => {
+      if (args[0] === 'rev-parse' && args[1] === '--verify') throw new Error('unknown');
       return '/repos/myrepo';
     };
     worktree.add('feature/foo');
@@ -307,21 +308,21 @@ describe('remove()', () => {
 
   it('removes a clean worktree and deletes the branch with -d', () => {
     const calls = [];
-    currentGitFn = (cmd) => {
-      calls.push(cmd);
-      if (cmd === 'status --porcelain') return '';
+    currentGitFn = (args) => {
+      calls.push(args);
+      if (args[0] === 'status' && args[1] === '--porcelain') return '';
       return twoWorktrees();
     };
     worktree.remove('feature/foo');
-    assert.ok(calls.some(c => c.includes('worktree remove')));
-    assert.ok(calls.some(c => /branch -d /.test(c)));
+    assert.ok(calls.some(c => c[0] === 'worktree' && c[1] === 'remove'));
+    assert.ok(calls.some(c => c[0] === 'branch' && c[1] === '-d'));
     assert.match(consoleLogs[0], /Removed worktree/);
     assert.match(consoleLogs[0], /feature\/foo/);
   });
 
   it('includes the removed path in the success message', () => {
-    currentGitFn = (cmd) => {
-      if (cmd === 'status --porcelain') return '';
+    currentGitFn = (args) => {
+      if (args[0] === 'status' && args[1] === '--porcelain') return '';
       return twoWorktrees();
     };
     worktree.remove('feature/foo');
@@ -330,11 +331,11 @@ describe('remove()', () => {
 
   it('skips status check and uses branch -D with --force', () => {
     const calls = [];
-    currentGitFn = (cmd) => { calls.push(cmd); return twoWorktrees(); };
+    currentGitFn = (args) => { calls.push(args); return twoWorktrees(); };
     worktree.remove('feature/foo', { force: true });
-    assert.ok(calls.some(c => c.includes('worktree remove --force')));
-    assert.ok(calls.some(c => /branch -D /.test(c)));
-    assert.ok(!calls.some(c => c === 'status --porcelain'));
+    assert.ok(calls.some(c => c[0] === 'worktree' && c[1] === 'remove' && c.includes('--force')));
+    assert.ok(calls.some(c => c[0] === 'branch' && c[1] === '-D'));
+    assert.ok(!calls.some(c => c[0] === 'status' && c[1] === '--porcelain'));
   });
 
   it('throws a helpful message when status check fails (directory gone)', () => {
@@ -348,9 +349,9 @@ describe('remove()', () => {
   });
 
   it('warns but does not throw when branch was already deleted', () => {
-    currentGitFn = (cmd) => {
-      if (cmd === 'status --porcelain') return '';
-      if (cmd.includes('branch -d')) {
+    currentGitFn = (args) => {
+      if (args[0] === 'status' && args[1] === '--porcelain') return '';
+      if (args[0] === 'branch' && args[1] === '-d') {
         const err = new Error('error: branch not found');
         err.stderr = 'error: branch not found';
         throw err;
@@ -362,9 +363,9 @@ describe('remove()', () => {
   });
 
   it('rethrows unexpected errors from branch deletion', () => {
-    currentGitFn = (cmd) => {
-      if (cmd === 'status --porcelain') return '';
-      if (cmd.includes('branch -d')) throw new Error('permission denied');
+    currentGitFn = (args) => {
+      if (args[0] === 'status' && args[1] === '--porcelain') return '';
+      if (args[0] === 'branch' && args[1] === '-d') throw new Error('permission denied');
       return twoWorktrees();
     };
     assert.throws(() => worktree.remove('feature/foo'), { message: 'permission denied' });
@@ -377,13 +378,13 @@ describe('remove()', () => {
     ].join('\n\n') + '\n\n';
 
     const calls = [];
-    currentGitFn = (cmd) => {
-      calls.push(cmd);
-      if (cmd === 'status --porcelain') return '';
+    currentGitFn = (args) => {
+      calls.push(args);
+      if (args[0] === 'status' && args[1] === '--porcelain') return '';
       return blocks;
     };
     worktree.remove('detached');
-    assert.ok(!calls.some(c => c.startsWith('branch')));
+    assert.ok(!calls.some(c => c[0] === 'branch'));
     assert.doesNotMatch(consoleLogs[0], /deleted branch/);
   });
 });

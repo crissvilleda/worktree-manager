@@ -1,11 +1,11 @@
 'use strict';
 
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
 function git(args, options = {}) {
   const cwd = options.cwd || process.cwd();
   try {
-    return execSync(`git ${args}`, {
+    return execFileSync('git', args, {
       cwd,
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
