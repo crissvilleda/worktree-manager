@@ -22,7 +22,7 @@ program
 
 program
   .command('rm <worktree>')
-  .description('Remove a worktree and delete its branch')
+  .description('Remove a worktree by name or -n <index> (prompts when using -n)')
   .option('-f, --force', 'Remove even if there are uncommitted changes')
   .option('-n, --numeric', 'Identify worktree by 1-based numeric index (prompts for confirmation)')
   .action((worktree, opts) => {
