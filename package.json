@@ -7,7 +7,9 @@
     "wt": "./bin/wt.js"
   },
   "scripts": {
-    "lint": "node --check src/*.js bin/*.js"
+    "lint": "node --check src/*.js bin/*.js",
+    "test": "node --test 'test/**/*.test.js'",
+    "test:coverage": "node --test --experimental-test-coverage 'test/**/*.test.js'"
   },
   "dependencies": {
     "commander": "^14.0.3"
