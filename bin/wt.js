@@ -2,7 +2,7 @@
 'use strict';
 
 const { program } = require('commander');
-const { add, list, remove } = require('../src/worktree');
+const { add, list, remove, goPath } = require('../src/worktree');
 const { version } = require('../package.json');
 
 program
@@ -25,6 +25,10 @@ program
   .description('Remove a worktree and delete its branch')
   .option('-f, --force', 'Remove even if there are uncommitted changes')
   .action((worktree, opts) => run(() => remove(worktree, opts)));
+
+program
+  .command('_go-path <identifier>', { hidden: true })
+  .action((identifier) => run(() => goPath(identifier)));
 
 program.parse(process.argv);
 

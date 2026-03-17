@@ -145,4 +145,29 @@ function remove(identifier, opts = {}) {
   console.log(`Removed worktree at ${target.path}${branch ? ` and deleted branch ${branch}` : ''}.`);
 }
 
-module.exports = { add, list, remove };
+function goPath(identifier) {
+  let output;
+  try {
+    output = git('worktree list --porcelain');
+  } catch {
+    throw new Error('Not inside a git repository.');
+  }
+
+  const worktrees = parseWorktreePorcelain(output);
+
+  const index = parseInt(identifier, 10);
+  let target;
+  if (!isNaN(index)) {
+    target = worktrees[index - 1];
+  } else {
+    target = resolveWorktree(worktrees, identifier);
+  }
+
+  if (!target) {
+    throw new Error(`No worktree found matching '${identifier}'.`);
+  }
+
+  process.stdout.write(target.path);
+}
+
+module.exports = { add, list, remove, goPath };
