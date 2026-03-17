@@ -9,6 +9,25 @@ npm install
 npm link
 ```
 
+This symlinks the `wt` binary into npm's global bin directory. Make sure that directory is on your `PATH`. You can check with:
+
+```bash
+npm bin -g
+# e.g. /Users/you/.npm-global/bin
+```
+
+If it isn't in your `PATH`, add it to `~/.zshrc`:
+
+```zsh
+export PATH="$(npm bin -g):$PATH"
+```
+
+Then reload your shell:
+
+```bash
+source ~/.zshrc
+```
+
 ## Commands
 
 ### `wt add <branch> [directory]`
