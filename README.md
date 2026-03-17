@@ -62,15 +62,23 @@ wt rm --force my-feature   # remove even with uncommitted changes
 
 You can identify the worktree by branch name, directory name, or full path.
 
-### `wt go <number|name>`
+### `wt go <name>`
 
-Navigate your terminal to a worktree directory. Accepts a 1-based index (from `wt list` order) or any identifier accepted by `wt rm`.
+Navigate your terminal to a worktree directory by branch name, directory name, or full path.
 
 ```bash
-wt go 1               # go to main worktree
-wt go 2               # go to second worktree
 wt go feature/my-feature
 wt go my-feature
+wt go /path/to/worktree
+```
+
+### `wt go -n <number>`
+
+Navigate to a worktree by its 1-based index (as shown in `wt list`).
+
+```bash
+wt go -n 1    # go to main worktree
+wt go -n 2    # go to second worktree
 ```
 
 > **This command requires a one-time shell setup — see below.**

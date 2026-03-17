@@ -27,8 +27,19 @@ program
   .action((worktree, opts) => run(() => remove(worktree, opts)));
 
 program
+  .command('go <name|number>')
+  .description('Navigate to a worktree by name or -n <index> (requires shell setup — see README)')
+  .option('-n, --numeric', 'Resolve by 1-based numeric index instead of name')
+  .action(() => {
+    console.error('Error: `wt go` requires the shell wrapper to be installed.');
+    console.error('See the README for setup instructions.');
+    process.exit(1);
+  });
+
+program
   .command('_go-path <identifier>', { hidden: true })
-  .action((identifier) => run(() => goPath(identifier)));
+  .option('-n, --numeric', 'Resolve by numeric index')
+  .action((identifier, opts) => run(() => goPath(identifier, opts)));
 
 program.parse(process.argv);
 

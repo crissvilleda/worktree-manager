@@ -144,7 +144,7 @@ function remove(identifier, opts = {}) {
   console.log(`Removed worktree at ${target.path}${branch ? ` and deleted branch ${branch}` : ''}.`);
 }
 
-function goPath(identifier) {
+function goPath(identifier, opts = {}) {
   let output;
   try {
     output = git(['worktree', 'list', '--porcelain']);
@@ -154,9 +154,12 @@ function goPath(identifier) {
 
   const worktrees = parseWorktreePorcelain(output);
 
-  const index = parseInt(identifier, 10);
   let target;
-  if (!isNaN(index)) {
+  if (opts.numeric) {
+    const index = parseInt(identifier, 10);
+    if (isNaN(index)) {
+      throw new Error(`'${identifier}' is not a valid number.`);
+    }
     target = worktrees[index - 1];
   } else {
     target = resolveWorktree(worktrees, identifier);

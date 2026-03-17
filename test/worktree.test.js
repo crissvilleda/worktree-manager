@@ -401,29 +401,43 @@ describe('goPath()', () => {
     assert.throws(() => worktree.goPath('1'), { message: 'Not inside a git repository.' });
   });
 
-  it('resolves to first worktree by numeric index 1', () => {
+  it('resolves to first worktree with -n 1', () => {
     currentGitFn = () => twoWorktrees();
-    worktree.goPath('1');
+    worktree.goPath('1', { numeric: true });
     assert.equal(stdoutWrites[0], '/repos/main');
   });
 
-  it('resolves to second worktree by numeric index 2', () => {
+  it('resolves to second worktree with -n 2', () => {
     currentGitFn = () => twoWorktrees();
-    worktree.goPath('2');
+    worktree.goPath('2', { numeric: true });
     assert.equal(stdoutWrites[0], '/repos/feat');
   });
 
-  it('throws for a numeric index out of range', () => {
+  it('throws for -n with out-of-range index', () => {
     currentGitFn = () => twoWorktrees();
-    assert.throws(() => worktree.goPath('99'), {
+    assert.throws(() => worktree.goPath('99', { numeric: true }), {
       message: "No worktree found matching '99'.",
     });
   });
 
-  it('throws for numeric index 0 (worktrees are 1-based)', () => {
+  it('throws for -n 0 (worktrees are 1-based)', () => {
     currentGitFn = () => twoWorktrees();
-    assert.throws(() => worktree.goPath('0'), {
+    assert.throws(() => worktree.goPath('0', { numeric: true }), {
       message: "No worktree found matching '0'.",
+    });
+  });
+
+  it('throws for -n with a non-numeric string', () => {
+    currentGitFn = () => twoWorktrees();
+    assert.throws(() => worktree.goPath('foo', { numeric: true }), {
+      message: "'foo' is not a valid number.",
+    });
+  });
+
+  it('does not resolve "1" as a numeric index without -n', () => {
+    currentGitFn = () => twoWorktrees();
+    assert.throws(() => worktree.goPath('1'), {
+      message: "No worktree found matching '1'.",
     });
   });
 
@@ -454,13 +468,13 @@ describe('goPath()', () => {
 
   it('writes the path without a trailing newline', () => {
     currentGitFn = () => twoWorktrees();
-    worktree.goPath('1');
+    worktree.goPath('1', { numeric: true });
     assert.doesNotMatch(stdoutWrites[0], /\n$/);
   });
 
-  it('truncates float strings via parseInt (e.g. "1.9" → index 1)', () => {
+  it('truncates float strings with -n (e.g. "1.9" → index 1)', () => {
     currentGitFn = () => twoWorktrees();
-    worktree.goPath('1.9');
+    worktree.goPath('1.9', { numeric: true });
     assert.equal(stdoutWrites[0], '/repos/main');
   });
 });
