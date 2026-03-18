@@ -388,13 +388,20 @@ describe('remove()', () => {
     assert.doesNotMatch(consoleLogs[0], /deleted branch/);
   });
 
-  it('resolves and removes the first non-main worktree with -n 1', () => {
+  it('resolves and removes the second worktree with -n 2', () => {
     currentGitFn = (args) => {
       if (args[0] === 'status' && args[1] === '--porcelain') return '';
       return twoWorktrees();
     };
-    worktree.remove('1', { numeric: true });
+    worktree.remove('2', { numeric: true });
     assert.match(consoleLogs[0], /feature\/foo/);
+  });
+
+  it('throws for -n 1 (main worktree cannot be removed)', () => {
+    currentGitFn = () => twoWorktrees();
+    assert.throws(() => worktree.remove('1', { numeric: true }), {
+      message: 'Cannot remove the main worktree.',
+    });
   });
 
   it('throws for -n with out-of-range index', () => {
@@ -516,9 +523,16 @@ describe('getWorktreeByIndex()', () => {
   beforeEach(captureConsole);
   afterEach(() => mock.restoreAll());
 
-  it('returns the full worktree object for a valid index', () => {
+  it('returns the main worktree object for index 1', () => {
     currentGitFn = () => twoWorktrees();
     const result = worktree.getWorktreeByIndex(1);
+    assert.equal(result.path, '/repos/main');
+    assert.equal(result.branch, 'refs/heads/main');
+  });
+
+  it('returns the first secondary worktree for index 2', () => {
+    currentGitFn = () => twoWorktrees();
+    const result = worktree.getWorktreeByIndex(2);
     assert.equal(result.path, '/repos/feat');
     assert.equal(result.branch, 'refs/heads/feature/foo');
   });

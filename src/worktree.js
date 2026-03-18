@@ -105,7 +105,7 @@ function remove(identifier, opts = {}) {
     if (isNaN(index)) {
       throw new Error(`'${identifier}' is not a valid number.`);
     }
-    target = worktrees.slice(1)[index - 1];
+    target = worktrees[index - 1];
   } else {
     target = resolveWorktree(worktrees.slice(1), identifier);
   }
@@ -190,7 +190,7 @@ function getWorktreeByIndex(index) {
     return null;
   }
   const worktrees = parseWorktreePorcelain(output);
-  return worktrees.slice(1)[index - 1] || null;
+  return worktrees[index - 1] || null;
 }
 
 function getWorktreeNameByIndex(index) {
